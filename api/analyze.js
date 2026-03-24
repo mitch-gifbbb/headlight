@@ -65,7 +65,9 @@ Be specific and honest. If the image doesn't show a headlight clearly, set score
           }],
           generationConfig: {
             temperature: 0.2,
-            maxOutputTokens: 500,
+            maxOutputTokens: 1024,
+            responseMimeType: "application/json"
+          }
           }
         })
       }
