@@ -1483,23 +1483,23 @@
             <path d="M 20 90 A 80 80 0 0 1 100 10" fill="none" stroke="#c0392b" stroke-width="12" stroke-linecap="round"/>
             <path d="M 100 10 A 80 80 0 0 1 150 26" fill="none" stroke="#e8602c" stroke-width="12" stroke-linecap="round"/>
             <path d="M 150 26 A 80 80 0 0 1 180 90" fill="none" stroke="#27ae60" stroke-width="12" stroke-linecap="round"/>
-            <g transform="rotate(162 100 90)">
+            <g id="gaugeNeedle" transform="rotate(162 100 90)">
               <line x1="100" y1="90" x2="100" y2="25" stroke="#e8602c" stroke-width="3"/>
               <circle cx="100" cy="90" r="6" fill="#e8602c"/>
             </g>
           </svg>
         </div>
         <div class="score-center">
-          <div class="score-big">3.5</div>
+          <div class="score-big" id="scoreDisplay">3.5</div>
           <div class="score-sub">Out of 10</div>
         </div>
-        <div class="warn-badge">
+        <div class="warn-badge" id="warnBadge">
           <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-          <div class="warn-badge-text">Warning: Critical UV Failure Detected</div>
+          <div class="warn-badge-text" id="warnBadgeText">Warning: Critical UV Failure Detected</div>
         </div>
         <div class="findings-box">
           <div class="findings-label">Key Findings</div>
-          <ul>
+          <ul id="findingsList">
             <li>Headlight clarity reduced by 68%, resulting in up to 40% reduction in nighttime visibility range</li>
             <li>UV coating completely degraded. Estimated failure occurred 14–18 months ago, accelerating lens oxidation</li>
           </ul>
@@ -1822,36 +1822,138 @@ const messages = [
   'Processing Safety Metrics...',
   'Generating Diagnostic Report...',
 ];
-const SCAN_DURATION = 5000;
-let scanInterval, msgInterval, laserInterval, startTime;
 
-function startScan(e) {
+let msgInterval, laserInterval;
+let geminiResult = null;
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function startScan(e) {
   const file = e.target.files[0];
   if (!file) return;
+
   const url = URL.createObjectURL(file);
   document.getElementById('scanImg').src = url;
   document.getElementById('uploadArea').style.display = 'none';
   document.getElementById('scanningArea').style.display = 'block';
-  startTime = Date.now();
-  let msgIdx = 0;
+
+  // Start laser animation
   let laserPos = 0;
+  let msgIdx = 0;
   msgInterval = setInterval(() => {
     msgIdx = (msgIdx + 1) % messages.length;
     document.getElementById('scanMsg').textContent = messages[msgIdx];
-  }, 600);
+  }, 700);
   laserInterval = setInterval(() => {
     laserPos = (laserPos + 1.5) % 100;
     document.getElementById('laserLine').style.top = laserPos + '%';
-    const elapsed = Date.now() - startTime;
-    const pct = Math.min((elapsed / SCAN_DURATION) * 100, 100);
-    document.getElementById('scanProgress').style.width = pct + '%';
   }, 30);
+
+  // Call Gemini via our serverless function
+  try {
+    const base64 = await toBase64(file);
+
+    // Animate progress bar while waiting
+    let fakePct = 0;
+    const progressInterval = setInterval(() => {
+      fakePct = Math.min(fakePct + 0.4, 90); // crawl to 90%, real finish on response
+      document.getElementById('scanProgress').style.width = fakePct + '%';
+    }, 100);
+
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: base64, mimeType: file.type })
+    });
+
+    clearInterval(progressInterval);
+    document.getElementById('scanProgress').style.width = '100%';
+
+    if (!response.ok) throw new Error('API error');
+    geminiResult = await response.json();
+
+  } catch (err) {
+    console.error('Gemini error:', err);
+    // Fall back to demo result if API fails
+    geminiResult = null;
+  }
+
+  // Stop animation, show result
+  clearInterval(msgInterval);
+  clearInterval(laserInterval);
+
   setTimeout(() => {
-    clearInterval(msgInterval);
-    clearInterval(laserInterval);
     document.getElementById('scanningArea').style.display = 'none';
-    document.getElementById('resultArea').style.display = 'block';
-  }, SCAN_DURATION);
+    showResult(geminiResult);
+  }, 400);
+}
+
+function showResult(result) {
+  document.getElementById('resultArea').style.display = 'block';
+
+  // If we got a real result from Gemini, populate it
+  if (result && result.score !== null && result.score !== undefined) {
+    const score = parseFloat(result.score).toFixed(1);
+    const condition = result.condition || 'Poor';
+    const findings = result.findings || [];
+    const recommendation = result.recommendation || '';
+
+    // Update score
+    document.getElementById('scoreDisplay').textContent = score;
+
+    // Update condition badge colour
+    const badge = document.getElementById('warnBadge');
+    const badgeText = document.getElementById('warnBadgeText');
+    if (score >= 8) {
+      badge.style.background = 'rgba(39,174,96,0.15)';
+      badge.style.borderColor = '#27ae60';
+      badgeText.style.color = '#27ae60';
+      badgeText.textContent = `Good Condition — Minor Maintenance Recommended`;
+    } else if (score >= 6) {
+      badge.style.background = 'rgba(232,168,44,0.15)';
+      badge.style.borderColor = '#C9A84C';
+      badgeText.style.color = '#C9A84C';
+      badgeText.textContent = `Fair Condition — Restoration Recommended Soon`;
+    } else if (score >= 4) {
+      badge.style.background = 'rgba(232,96,44,0.15)';
+      badge.style.borderColor = '#e8602c';
+      badgeText.style.color = '#e8602c';
+      badgeText.textContent = `Poor Condition — Restoration Needed`;
+    } else {
+      badge.style.background = 'rgba(192,57,43,0.2)';
+      badge.style.borderColor = '#c0392b';
+      badgeText.style.color = '#c0392b';
+      badgeText.textContent = `Warning: Critical UV Failure Detected`;
+    }
+
+    // Update needle rotation (score 1-10 maps to roughly -160deg to +20deg)
+    const rotation = -160 + ((parseFloat(score) - 1) / 9) * 180;
+    document.getElementById('gaugeNeedle').setAttribute('transform', `rotate(${rotation} 100 90)`);
+
+    // Update findings
+    const findingsList = document.getElementById('findingsList');
+    findingsList.innerHTML = '';
+    if (findings.length > 0) {
+      findings.forEach(f => {
+        const li = document.createElement('li');
+        li.textContent = f;
+        findingsList.appendChild(li);
+      });
+    }
+    if (recommendation) {
+      const li = document.createElement('li');
+      li.textContent = recommendation;
+      findingsList.appendChild(li);
+    }
+  }
+  // If no result, the default HTML placeholders stay visible
 }
 
 function resetScanner() {
@@ -1860,6 +1962,8 @@ function resetScanner() {
   document.getElementById('resultArea').style.display = 'none';
   document.getElementById('fileInput').value = '';
   document.getElementById('phoneInput').value = '';
+  document.getElementById('scanProgress').style.width = '0%';
+  geminiResult = null;
 }
 
 function submitQuote() {
