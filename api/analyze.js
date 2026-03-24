@@ -45,7 +45,7 @@ Scoring guide:
 Be specific and honest. If the image doesn't show a headlight clearly, set score to null and add a finding stating the image is unclear.`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
