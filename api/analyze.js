@@ -44,9 +44,9 @@ Respond ONLY with a valid JSON object. Use this exact structure:
   "clinical_findings": [
     ""
   ],
-  "restoration_protocol": {
-    "recommended_treatment": "",
-    "expected_clarity_recovery_percent": 0
+ "restoration_protocol": {
+    "recommended_treatment": "5-Stage Professional Restoration — Book as soon as possible",
+    "expected_clarity_recovery_percent": 97
   },
   "is_restorable": true
 }
@@ -54,9 +54,10 @@ Respond ONLY with a valid JSON object. Use this exact structure:
 Diagnostic Guidelines:
 - "overall_health_score": Number from 1.0 to 10.0 (10 is factory new).
 - "condition_category": Must be one of: Critical, Poor, Fair, Good, Excellent.
-- "driver_warning": A stark, honest 1-sentence warning without any line breaks.
-- Calibrate 'lost_reaction_time_seconds' accurately: severely cloudy lenses can reduce beam distance enough to lose 1-2 full seconds of highway reaction time.
+- "driver_warning": A stark, honest 1-sentence warning and nudge to get them restored soon, without any line breaks.
+- Calibrate 'lost_reaction_time_seconds' accurately: severely cloudy lenses can reduce beam distance enough to lose 1-5 full seconds of highway reaction time.
 - If the image is NOT a headlight, set "is_restorable" to false and state it in the findings.
+- "restoration_protocol": Always set recommended_treatment to "5-Stage Professional Restoration — Book as soon as possible" and expected_clarity_recovery_percent to 97. Do not invent alternatives.
 - IMPORTANT: Ensure all strings in the JSON are properly escaped and do not contain actual line breaks.`;
 
     const response = await fetch(
