@@ -729,7 +729,37 @@
     flex-shrink: 0;
     font-weight: 700;
   }
-  .quote-form { display: flex; flex-direction: column; gap: 0.75rem; }
+  .metric-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .metric-item { text-align: center; }
+  .metric-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.4rem;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .metric-lbl {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-top: 0.2rem;
+  }
+  .protocol-note {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+  }
+  .protocol-note strong { color: var(--gold); }
   .form-label {
     font-size: 0.7rem;
     font-weight: 700;
@@ -1504,6 +1534,7 @@
             <li>UV coating completely degraded. Estimated failure occurred 14–18 months ago, accelerating lens oxidation</li>
           </ul>
         </div>
+        <div class="findings-box" id="damageMetrics" style="margin-bottom:1.25rem"></div>
         <div class="quote-form">
           <div>
             <label class="form-label">Get Your Professional Restoration Quote</label>
@@ -1898,62 +1929,76 @@ async function startScan(e) {
 function showResult(result) {
   document.getElementById('resultArea').style.display = 'block';
 
-  // If we got a real result from Gemini, populate it
-  if (result && result.score !== null && result.score !== undefined) {
-    const score = parseFloat(result.score).toFixed(1);
-    const condition = result.condition || 'Poor';
-    const findings = result.findings || [];
-    const recommendation = result.recommendation || '';
+  if (result && result.overall_health_score !== null && result.overall_health_score !== undefined) {
+    const score = parseFloat(result.overall_health_score).toFixed(1);
+    const condition = result.condition_category || 'Poor';
+    const safety = result.safety_impact || {};
+    const damage = result.damage_metrics || {};
+    const findings = result.clinical_findings || [];
+    const protocol = result.restoration_protocol || {};
 
     // Update score
     document.getElementById('scoreDisplay').textContent = score;
 
-    // Update condition badge colour
+    // Update needle rotation (1-10 maps to -160deg to +20deg)
+    const rotation = -160 + ((parseFloat(score) - 1) / 9) * 180;
+    document.getElementById('gaugeNeedle').setAttribute('transform', `rotate(${rotation} 100 90)`);
+
+    // Update condition badge
     const badge = document.getElementById('warnBadge');
     const badgeText = document.getElementById('warnBadgeText');
     if (score >= 8) {
       badge.style.background = 'rgba(39,174,96,0.15)';
       badge.style.borderColor = '#27ae60';
       badgeText.style.color = '#27ae60';
-      badgeText.textContent = `Good Condition — Minor Maintenance Recommended`;
+      badgeText.textContent = condition + ' — Minor Maintenance Recommended';
     } else if (score >= 6) {
-      badge.style.background = 'rgba(232,168,44,0.15)';
+      badge.style.background = 'rgba(201,168,76,0.15)';
       badge.style.borderColor = '#C9A84C';
       badgeText.style.color = '#C9A84C';
-      badgeText.textContent = `Fair Condition — Restoration Recommended Soon`;
+      badgeText.textContent = condition + ' — Restoration Recommended Soon';
     } else if (score >= 4) {
       badge.style.background = 'rgba(232,96,44,0.15)';
       badge.style.borderColor = '#e8602c';
       badgeText.style.color = '#e8602c';
-      badgeText.textContent = `Poor Condition — Restoration Needed`;
+      badgeText.textContent = condition + ' — Restoration Needed';
     } else {
       badge.style.background = 'rgba(192,57,43,0.2)';
       badge.style.borderColor = '#c0392b';
       badgeText.style.color = '#c0392b';
-      badgeText.textContent = `Warning: Critical UV Failure Detected`;
+      badgeText.textContent = condition + ' — Critical UV Failure Detected';
     }
 
-    // Update needle rotation (score 1-10 maps to roughly -160deg to +20deg)
-    const rotation = -160 + ((parseFloat(score) - 1) / 9) * 180;
-    document.getElementById('gaugeNeedle').setAttribute('transform', `rotate(${rotation} 100 90)`);
-
-    // Update findings
+    // Clinical findings + driver warning
     const findingsList = document.getElementById('findingsList');
     findingsList.innerHTML = '';
-    if (findings.length > 0) {
-      findings.forEach(f => {
-        const li = document.createElement('li');
-        li.textContent = f;
-        findingsList.appendChild(li);
-      });
-    }
-    if (recommendation) {
+    if (safety.driver_warning) {
       const li = document.createElement('li');
-      li.textContent = recommendation;
+      li.innerHTML = '<strong style="color:#c0392b">⚠ Safety Warning:</strong> ' + safety.driver_warning;
       findingsList.appendChild(li);
     }
+    findings.forEach(f => {
+      const li = document.createElement('li');
+      li.textContent = f;
+      findingsList.appendChild(li);
+    });
+
+    // Damage metrics grid
+    const metricsBox = document.getElementById('damageMetrics');
+    if (metricsBox) {
+      const def = (v) => (v !== undefined && v !== null) ? v : '—';
+      metricsBox.innerHTML =
+        '<div class="metric-row">' +
+          '<div class="metric-item"><div class="metric-val">' + def(safety.visibility_reduction_percent) + '%</div><div class="metric-lbl">Visibility Lost</div></div>' +
+          '<div class="metric-item"><div class="metric-val">' + def(safety.lost_reaction_time_seconds) + 's</div><div class="metric-lbl">Reaction Time Lost</div></div>' +
+          '<div class="metric-item"><div class="metric-val">+' + def(safety.collision_risk_increase_percent) + '%</div><div class="metric-lbl">Collision Risk</div></div>' +
+          '<div class="metric-item"><div class="metric-val">' + def(damage.oxidation_yellowing_percent) + '%</div><div class="metric-lbl">Oxidation</div></div>' +
+          '<div class="metric-item"><div class="metric-val">' + def(damage.clearcoat_failure_percent) + '%</div><div class="metric-lbl">Clearcoat Failure</div></div>' +
+          '<div class="metric-item"><div class="metric-val">' + def(damage.surface_pitting_percent) + '%</div><div class="metric-lbl">Surface Pitting</div></div>' +
+        '</div>' +
+        (protocol.recommended_treatment ? '<div class="protocol-note"><strong>Recommended Treatment:</strong> ' + protocol.recommended_treatment + ' — Expected clarity recovery: ' + def(protocol.expected_clarity_recovery_percent) + '%</div>' : '');
+    }
   }
-  // If no result, the default HTML placeholders stay visible
 }
 
 function resetScanner() {
