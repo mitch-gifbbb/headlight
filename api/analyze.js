@@ -20,29 +20,42 @@ module.exports = async function handler(req, res) {
     // Strip the "data:image/jpeg;base64," prefix if it was passed from the frontend
     const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
-    const prompt = `You are a professional headlight restoration specialist analyzing a vehicle headlight photo for a customer on Vancouver Island, BC.
+    const prompt = `You are an elite automotive safety inspector and headlight restoration specialist operating on Vancouver Island, BC.
+Conduct a highly granular, professional diagnostic analysis of the provided vehicle headlight image.
 
-Analyze this headlight image and respond ONLY with a valid JSON object in exactly this format, no other text:
+Respond ONLY with a valid JSON object in exactly this format, with no extra text:
 
 {
-  "score": <number from 1.0 to 10.0>,
-  "condition": "<one of: Critical | Poor | Fair | Good>",
-  "clarity_reduction": <estimated percentage of clarity lost, as a number 0-100>,
-  "findings": [
-    "<specific finding about this headlight>",
-    "<second specific finding about this headlight>"
+  "overall_health_score": <number 1.0 to 10.0, with 1 decimal place. 10 is factory new>,
+  "condition_category": "<Critical | Poor | Fair | Good | Excellent>",
+  "safety_impact": {
+    "is_hazardous": <true or false - true if condition severely impacts night driving>,
+    "visibility_reduction_percent": <number 0-100 - how much light is blocked>,
+    "lost_reaction_time_seconds": <number 0.0 to 3.5 - estimated seconds of delayed reaction at 80km/h due to dim light throw>,
+    "collision_risk_increase_percent": <number 0 to 400 - estimated percentage increase in night-time accident risk>,
+    "driver_warning": "<A stark, honest 1-sentence warning about driving with these specific headlights at night or in rain.>"
+  },
+  "damage_metrics": {
+    "oxidation_yellowing_percent": <number 0-100>,
+    "clearcoat_failure_percent": <number 0-100>,
+    "surface_pitting_percent": <number 0-100>
+  },
+  "clinical_findings": [
+    "<Specific, technical observation 1>",
+    "<Specific, technical observation 2>"
   ],
-  "recommendation": "<one sentence professional recommendation>",
-  "restorable": <true or false>
+  "restoration_protocol": {
+    "recommended_treatment": "<Specific detailing steps>",
+    "expected_clarity_recovery_percent": <number 0-100>
+  },
+  "is_restorable": <true or false>
 }
 
-Scoring guide:
-- 1-3: Critical UV failure, severely yellowed/cloudy, dangerous
-- 4-5: Poor condition, noticeable oxidation, needs restoration soon
-- 6-7: Fair condition, early UV damage, restoration recommended
-- 8-10: Good condition, minimal oxidation, monitoring recommended
-
-Be specific and honest. If the image doesn't show a headlight clearly, set score to null and add a finding stating the image is unclear.`;
+Diagnostic Guidelines:
+- Be highly analytical. A 10/10 means showroom floor.
+- For scores under 6.0, heavily emphasize the 'safety_impact' metrics. 
+- Calibrate 'lost_reaction_time_seconds' accurately: severely cloudy lenses can reduce beam distance enough to lose 1-2 full seconds of highway reaction time.
+- If the image is NOT a headlight, set "is_restorable" to false and state it in the findings.`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
