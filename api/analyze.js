@@ -75,8 +75,17 @@ Be specific and honest. If the image doesn't show a headlight clearly, set score
       return res.status(500).json({ error: 'No response from Gemini' });
     }
 
-    // Strip markdown code fences if present
-    const cleaned = text.replace(/```json|```/g, '').trim();
+    // Strip markdown code fences and extract JSON more aggressively
+    let cleaned = text.replace(/```json|```/g, '').trim();
+    
+    // Find the first { and last } to extract just the JSON object
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace === -1 || lastBrace === -1) {
+      return res.status(500).json({ error: 'No JSON object found in response', raw: cleaned });
+    }
+    cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+    
     const parsed = JSON.parse(cleaned);
 
     return res.status(200).json(parsed);
