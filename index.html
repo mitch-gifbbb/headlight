@@ -1992,6 +1992,24 @@ function showError(msg) {
 }
 
 function showResult(result) {
+  // Handle non-headlight images — show message only, no scores
+  if (result && result.is_headlight === false) {
+    document.getElementById('resultArea').style.display = 'block';
+    document.getElementById('warnBadge').style.background = 'rgba(201,168,76,0.12)';
+    document.getElementById('warnBadge').style.borderColor = 'var(--gold)';
+    document.getElementById('warnBadgeText').style.color = 'var(--gold)';
+    document.getElementById('warnBadgeText').textContent = 'Object Not Recognised as a Headlight';
+    document.getElementById('scoreDisplay').textContent = '—';
+    document.getElementById('gaugeNeedle').setAttribute('transform', 'rotate(-160 100 90)');
+    document.getElementById('findingsList').innerHTML =
+      '<li style="color:var(--gold);font-size:1rem;list-style:none;text-align:center;padding:0.5rem 0">' +
+      '⚠ Please upload a clear photo of a vehicle headlight to begin analysis.' +
+      '</li>';
+    const metricsBox = document.getElementById('damageMetrics');
+    if (metricsBox) metricsBox.innerHTML = '';
+    return;
+  }
+
   if (!result || result.overall_health_score === null || result.overall_health_score === undefined) {
     showError('No result returned from analysis');
     return;
@@ -2020,7 +2038,7 @@ function showResult(result) {
       badge.style.background = 'rgba(39,174,96,0.15)';
       badge.style.borderColor = '#27ae60';
       badgeText.style.color = '#27ae60';
-      badgeText.textContent = condition + ' — Minor Maintenance Recommended';
+      badgeText.textContent = condition + ' — No Restoration Needed at This Time';
     } else if (score >= 6) {
       badge.style.background = 'rgba(201,168,76,0.15)';
       badge.style.borderColor = '#C9A84C';
