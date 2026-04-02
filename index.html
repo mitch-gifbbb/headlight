@@ -2083,7 +2083,9 @@ function showResult(result) {
           '<div class="metric-item"><div class="metric-val">' + def(damage.clearcoat_failure_percent) + '%</div><div class="metric-lbl">Clearcoat Failure</div></div>' +
           '<div class="metric-item"><div class="metric-val">' + def(damage.surface_pitting_percent) + '%</div><div class="metric-lbl">Surface Pitting</div></div>' +
         '</div>' +
-        (protocol.recommended_treatment ? '<div class="protocol-note"><strong>Recommended Treatment:</strong> ' + protocol.recommended_treatment + ' — Expected clarity recovery: ' + def(protocol.expected_clarity_recovery_percent) + '%</div>' : '');
+        (score >= 8
+          ? '<div class="protocol-note" style="color:#27ae60"><strong>No Restoration Needed at This Time.</strong> We recommend a ceramic coating top-up in 6 months to maintain this level of clarity.</div>'
+          : (protocol.recommended_treatment ? '<div class="protocol-note"><strong>Recommended Treatment:</strong> ' + protocol.recommended_treatment + ' — Expected clarity recovery: ' + def(protocol.expected_clarity_recovery_percent) + '%</div>' : ''));
     }
   }
 }
