@@ -968,6 +968,102 @@
     margin-top: 3rem;
   }
   .ba-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+
+  /* ─── SLIDER ───────────────────────────────────── */
+  .ba-slider-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    cursor: ew-resize;
+    user-select: none;
+    touch-action: none;
+  }
+  /* After image: full base layer */
+  .ba-slider-wrap > img.ba-after {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  /* Clip div: sits on top, starts at 50%, reveals the before image */
+  .ba-clip {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 50%;
+    overflow: hidden;
+  }
+  /* Before image: full-width inside its clip, so it doesn't scale */
+  .ba-clip img.ba-before {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100vw; /* overridden by JS to match wrap width */
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Handle */
+  .ba-handle {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    background: white;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ba-handle::before {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .ba-arrow-l, .ba-arrow-r {
+    position: absolute;
+    z-index: 1;
+    border: 6px solid transparent;
+  }
+  .ba-arrow-l {
+    border-right-color: var(--navy-deep);
+    right: 24px;
+  }
+  .ba-arrow-r {
+    border-left-color: var(--navy-deep);
+    left: 24px;
+  }
+  /* Labels */
+  .ba-slider-wrap::before,
+  .ba-slider-wrap::after {
+    position: absolute;
+    bottom: 10px;
+    z-index: 5;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    pointer-events: none;
+  }
+  .ba-slider-wrap::before {
+    content: 'BEFORE';
+    left: 10px;
+    background: var(--red-warn);
+    color: white;
+  }
+  .ba-slider-wrap::after {
+    content: 'AFTER';
+    right: 10px;
+    background: #27ae60;
+    color: white;
+  }
   .ba-images {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -2022,6 +2118,7 @@ function toggleFaq(item) {
 // Before/After sliders
 document.querySelectorAll('.ba-slider-wrap').forEach(wrap => {
   const clip = wrap.querySelector('.ba-clip');
+  const beforeImg = clip.querySelector('img.ba-before');
   const handle = wrap.querySelector('.ba-handle');
   let dragging = false;
 
@@ -2029,16 +2126,29 @@ document.querySelectorAll('.ba-slider-wrap').forEach(wrap => {
     const rect = wrap.getBoundingClientRect();
     let pct = (x - rect.left) / rect.width;
     pct = Math.min(Math.max(pct, 0.02), 0.98);
+    // Clip reveals the before image from the left
     clip.style.width = (pct * 100) + '%';
+    // Keep the before image at the full wrap width so it doesn't scale
+    beforeImg.style.width = rect.width + 'px';
+    // Move handle to match
     handle.style.left = (pct * 100) + '%';
+    handle.style.transform = 'translateX(-50%)';
   }
+
+  // Initialise at 50%
+  function init() {
+    const rect = wrap.getBoundingClientRect();
+    beforeImg.style.width = rect.width + 'px';
+  }
+  init();
+  window.addEventListener('resize', init);
 
   wrap.addEventListener('mousedown', e => { dragging = true; setPos(e.clientX); e.preventDefault(); });
   window.addEventListener('mousemove', e => { if (dragging) setPos(e.clientX); });
   window.addEventListener('mouseup', () => { dragging = false; });
 
-  wrap.addEventListener('touchstart', e => { dragging = true; setPos(e.touches[0].clientX); }, {passive:true});
-  window.addEventListener('touchmove', e => { if (dragging) setPos(e.touches[0].clientX); }, {passive:true});
+  wrap.addEventListener('touchstart', e => { dragging = true; setPos(e.touches[0].clientX); e.preventDefault(); }, {passive:false});
+  window.addEventListener('touchmove', e => { if (dragging) { setPos(e.touches[0].clientX); e.preventDefault(); } }, {passive:false});
   window.addEventListener('touchend', () => { dragging = false; });
 });
 </script>
