@@ -973,7 +973,7 @@
   .ba-slider-wrap {
     position: relative;
     width: 100%;
-    aspect-ratio: 4/3;
+    height: 220px;
     overflow: hidden;
     cursor: ew-resize;
     user-select: none;
@@ -1732,74 +1732,69 @@
 </section>
 
 <!-- BEFORE / AFTER -->
-<section id="gallery" class="py-24 bg-white border-t border-gold/10">
-      <div class="container mx-auto px-6">
-        <div class="text-center mb-16">
-          <div class="inline-block px-4 py-1 mb-4 border border-gold/30 rounded-full">
-            <span class="text-xs font-bold uppercase tracking-widest text-gold">Before & After Gallery</span>
+<section id="gallery">
+  <div class="gallery-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Before &amp; After Gallery</div>
+      <h2 class="section-title">The <span style="color:var(--gold)">Gold Standard</span> Results</h2>
+      <p class="section-sub">Don't just take our word for it. Browse our recent restorations and see the massive improvement in clarity and light output.</p>
+    </div>
+    <div class="ba-grid">
+
+      <div class="ba-card">
+        <div class="ba-slider-wrap">
+          <img src="1A.png" alt="After restoration" class="ba-after">
+          <div class="ba-clip">
+            <img src="1B.png" alt="Before restoration" class="ba-before">
           </div>
-          <h2 class="text-4xl md:text-5xl font-black text-navy-deep uppercase italic tracking-tighter mb-4">
-            The <span class="text-gold">Gold Standard</span> Results
-          </h2>
-          <p class="text-slate/70 max-w-2xl mx-auto font-medium">
-            Don't just take our word for it. Browse our recent restorations across Vancouver Island and see the massive improvement in clarity and light output.
-          </p>
+          <div class="ba-handle">
+            <div class="ba-arrow-l"></div>
+            <div class="ba-arrow-r"></div>
+          </div>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div class="ba-card group">
-            <div class="ba-slider-wrap">
-              <img src="1A.png" alt="After restoration" class="ba-after">
-              <div class="ba-clip">
-                <img src="1B.png" alt="Before restoration" class="ba-before">
-              </div>
-              <div class="ba-handle">
-                <div class="ba-arrow-l"></div>
-                <div class="ba-arrow-r"></div>
-              </div>
-            </div>
-            <div class="p-6 border-x border-b border-gold/20">
-              <h3 class="font-bold text-navy-deep uppercase tracking-wide">5 Stage Restoration</h3>
-              <p class="text-sm text-slate/60 italic">Location: Campbell River, BC</p>
-            </div>
-          </div>
-
-          <div class="ba-card group">
-            <div class="ba-slider-wrap">
-              <img src="2A.png" alt="After restoration" class="ba-after">
-              <div class="ba-clip">
-                <img src="2B.png" alt="Before restoration" class="ba-before">
-              </div>
-              <div class="ba-handle">
-                <div class="ba-arrow-l"></div>
-                <div class="ba-arrow-r"></div>
-              </div>
-            </div>
-            <div class="p-6 border-x border-b border-gold/20">
-              <h3 class="font-bold text-navy-deep uppercase tracking-wide">5 Stage Restoration</h3>
-              <p class="text-sm text-slate/60 italic">Location: Campbell River, BC</p>
-            </div>
-          </div>
-
-          <div class="ba-card group">
-            <div class="ba-slider-wrap">
-              <img src="3A.png" alt="After restoration" class="ba-after">
-              <div class="ba-clip">
-                <img src="3B.png" alt="Before restoration" class="ba-before">
-              </div>
-              <div class="ba-handle">
-                <div class="ba-arrow-l"></div>
-                <div class="ba-arrow-r"></div>
-              </div>
-            </div>
-            <div class="p-6 border-x border-b border-gold/20">
-              <h3 class="font-bold text-navy-deep uppercase tracking-wide">5 Stage Restoration</h3>
-              <p class="text-sm text-slate/60 italic">Location: Courtenay, BC</p>
-            </div>
-          </div>
+        <div class="ba-info">
+          <div class="ba-vehicle">5 Stage Restoration</div>
+          <div class="ba-result">Campbell River, BC</div>
         </div>
       </div>
-    </section>
+
+      <div class="ba-card">
+        <div class="ba-slider-wrap">
+          <img src="2A.png" alt="After restoration" class="ba-after">
+          <div class="ba-clip">
+            <img src="2B.png" alt="Before restoration" class="ba-before">
+          </div>
+          <div class="ba-handle">
+            <div class="ba-arrow-l"></div>
+            <div class="ba-arrow-r"></div>
+          </div>
+        </div>
+        <div class="ba-info">
+          <div class="ba-vehicle">5 Stage Restoration</div>
+          <div class="ba-result">Campbell River, BC</div>
+        </div>
+      </div>
+
+      <div class="ba-card">
+        <div class="ba-slider-wrap">
+          <img src="3A.png" alt="After restoration" class="ba-after">
+          <div class="ba-clip">
+            <img src="3B.png" alt="Before restoration" class="ba-before">
+          </div>
+          <div class="ba-handle">
+            <div class="ba-arrow-l"></div>
+            <div class="ba-arrow-r"></div>
+          </div>
+        </div>
+        <div class="ba-info">
+          <div class="ba-vehicle">5 Stage Restoration</div>
+          <div class="ba-result">Courtenay, BC</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
 
 <!-- REVIEWS -->
 <section id="reviews">
