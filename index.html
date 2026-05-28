@@ -2197,12 +2197,14 @@ function resetScanner() {
 function submitQuote() {
   const phone = document.getElementById('phoneInput').value;
   if (!phone) { document.getElementById('phoneInput').focus(); return; }
+  fbq('track', 'Lead');
   alert('Thanks! We\'ll text your quote to ' + phone + ' shortly.');
 }
 
 function submitContact() {
   const phone = document.getElementById('contactPhone').value;
   if (!phone) { document.getElementById('contactPhone').focus(); return; }
+  fbq('track', 'Lead');
   alert('Thanks! We\'ll text your quote to ' + phone + ' shortly.');
 }
 
